@@ -1,15 +1,15 @@
-
 const express = require('express')
 const router = express.Router()
+const {body, validationResult, validate} = require('../validation/validate.js') // validation
+const loginController = require('../controller/loginController.js')
+
 
 // 로그인
-router.post('/', (req, res) => {
-  const {id, pw} = req.body
-  console.log("id : ",id)
-  console.log("pw : ",pw)
-  res.status(200).json({
-    message : "로그인 성공"
-  })
-})
+router.post('/', 
+  body('id').notEmpty().isString().withMessage('id값이 잘못 입력되었습니다'),
+  body('password').notEmpty().isString().withMessage('password값이 잘못 입력되었습니다'),
+  validate, 
+  loginController
+)
 
 module.exports = router

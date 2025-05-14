@@ -5,8 +5,11 @@ const app = express()
 const dotenv = require('dotenv')
 dotenv.config()
 
+// 서버가 req.body를 파싱할 수 있도록 => 미들웨어 함수 등록
+app.use(express.json())
 
-// 미들웨어 함수 등록
+
+// 라우터 등록
 const indexRouter = require('./routes/index.js')
 app.use('/', indexRouter)
 
@@ -29,5 +32,8 @@ const ordersRouter = require('./routes/orders.js')
 app.use('/orders', ordersRouter)
 
 
+// 서버 오픈
 const PORT = process.env.PORT
-app.listen(PORT+" 해당 포트넘버로 서버 가동 중")
+app.listen(PORT, ()=> {
+  console.log(PORT+" 해당 포트넘버로 서버 가동 중")
+})

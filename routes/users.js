@@ -1,30 +1,27 @@
-
 const express = require('express')
 const router = express.Router()
+const getConn = require('../db/dbConnection.js') // mysql2 모듈
+const {body, validationResult, validate} = require('../validation/validate.js') // validation 검사 모듈
+const {StatusCodes} = require('http-status-codes'); // http-status-code 모듈
+const {registerController, changePwController} = require('../controller/userController.js')
+
+const idPwValidateMiddleWares = [ // id, password -> validation 확인 미들웨어
+  body('id').notEmpty().isString().withMessage('id값이 잘못 입력되었습니다'),
+  body('password').notEmpty().isString().withMessage('password값이 잘못 입력되었습니다'),
+  validate, // 위에 등록한 req.body로 오는 데이터(id,password)가 notEmpty에 반하거나 하면 => 여기서 응답종료. errMsg를 보냄
+]
 
 // 회원 가입
-router.post('/', (req, res) => {
-  const {id, password} = req.body
-  res.status(200).json({
-    message : "회원 가입 성공"
-  })
-})
+router.post('/',  
+  idPwValidateMiddleWares,
+  registerController
+)
 
 // 비밀번호 변경
-router.put('/', (req, res) => {
-  const {id, password} = req.body
-  res.status(200).json({
-    message : "비밀번호 변경 성공"
-  })
-})
-
-// 회원 탈퇴
-router.get('/', (req, res) => {
-  const {id, password} = req.body
-  res.status(200).json({
-    message : "회원 탈퇴 성공"
-  })
-})
+router.put('/', 
+  idPwValidateMiddleWares,
+  changePwController
+)
 
 
 module.exports = router 
