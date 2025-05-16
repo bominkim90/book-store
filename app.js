@@ -5,8 +5,9 @@ const app = express()
 const dotenv = require('dotenv')
 dotenv.config()
 
-// 서버가 req.body를 파싱할 수 있도록 => 미들웨어 함수 등록
-app.use(express.json())
+
+app.use(express.json()) // 서버가 req.body (JSON형태) 데이터 파싱
+// app.use(express.urlencoded({ extended: true })); // URL-encoded 파싱
 
 
 // 라우터 등록
@@ -21,6 +22,9 @@ app.use('/login', loginRouter)
 
 const booksRouter = require('./routes/books.js')
 app.use('/books', booksRouter)
+
+const categoryRouter = require('./routes/category.js')
+app.use('/category', categoryRouter)
 
 const likesRouter = require('./routes/likes.js')
 app.use('/likes', likesRouter)
