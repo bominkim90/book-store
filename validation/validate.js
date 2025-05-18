@@ -14,6 +14,5 @@ function validate(req, res, next) {
 
 module.exports = {
   body, 
-  validationResult, 
   validate
 }

@@ -23,9 +23,6 @@ app.use('/login', loginRouter)
 const booksRouter = require('./routes/books.js')
 app.use('/books', booksRouter)
 
-const categoryRouter = require('./routes/category.js')
-app.use('/category', categoryRouter)
-
 const likesRouter = require('./routes/likes.js')
 app.use('/likes', likesRouter)
 

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const {body, validationResult, validate} = require('../validation/validate.js') // validation
+const {body, validate} = require('../validation/validate.js') // validation
 const loginController = require('../controller/loginController.js')
 
 
