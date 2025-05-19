@@ -9,7 +9,7 @@ router.get('/', selectAllBooks)
 
 // '개별' 도서 조회
 const {selectEachBook} = require('../controller/bookController.js')
-router.get('/:bookId', selectEachBook)
+router.get('/:book_id', selectEachBook)
 
 
 module.exports = router

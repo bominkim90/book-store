@@ -1,5 +1,5 @@
 const {StatusCodes} = require('http-status-codes');
-const getConn = require('../db/dbConnection.js');
+const dbConnection = require('../db/dbConnection.js');
 
 
 // '전체' 도서 조회
@@ -12,7 +12,10 @@ async function selectAllBooks(req, res) {
     currentPage = parseInt(currentPage);
     let message = "";
     let sql = `
-      SELECT books.*, category.name AS category_name
+      SELECT 
+        books.*, 
+        category.name AS category_name,
+        (SELECT count(*) FROM likes WHERE likes.book_id = books.id) AS like_count
       FROM books
       LEFT JOIN category ON books.categoryId = category.id 
     `;
@@ -35,8 +38,8 @@ async function selectAllBooks(req, res) {
     sql += ` LIMIT ${limit} OFFSET ${limit * (currentPage - 1)}`;
     message += ` : ${limit}개씩 보여주고, ${currentPage}번째 페이지`;
     // db 연결 생성
-    const conn = await getConn();
-    const [result , _] = await conn.query(sql);
+    const conn = await dbConnection;
+    const [result] = await conn.query(sql);
     if(result.length > 0) {
       res.status(StatusCodes.OK).json({message :message, data : result});
     }
@@ -52,20 +55,31 @@ async function selectAllBooks(req, res) {
 
 
 // '개별' 도서 조회
-// 조회 정보 + category_id만 붙여서 보내면 됨
 async function selectEachBook(req, res) {
   try {
-    const {bookId} = req.params;
-    console.log("bookId : ",bookId);
-    const conn = await getConn();
+    const {user_id} = req.body;
+    const {book_id} = req.params;
+    const conn = await dbConnection;
     let sql = `
-      SELECT books.*, category.name AS category_name
-      FROM books 
-      LEFT JOIN category ON books.categoryId = category.id
+      SELECT 
+        book_store.books.*,
+        book_store.category.name AS category_name,
+        ( SELECT EXISTS  
+          (
+            SELECT * FROM likes WHERE likes.user_id = ? AND likes.book_id = ?
+          )
+        ) AS isLiked
+      
+      FROM book_store.books
+      
+      LEFT JOIN book_store.category
+      ON book_store.books.categoryId = book_store.category.id
+      
       WHERE books.id = ?
     `;
-    let sqlValue = bookId;
-    const [result , _] = await conn.query(sql, sqlValue);
+    const sqlValues = [user_id, book_id, book_id]
+    const [result] = await conn.query(sql, sqlValues);
+    console.log("result : ",result);
     res.status(StatusCodes.OK).json({
       message : "개별 도서 조회",
       data : result
