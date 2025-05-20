@@ -1,6 +1,6 @@
-
 const express = require('express')
 const router = express.Router()
+
 
 // 주문 하기
 router.post('/', (req, res) => {
@@ -11,7 +11,7 @@ router.post('/', (req, res) => {
   })
 })
 
-// 주문 목록 조회회
+// 주문 목록 조회
 router.get('/', (req, res) => {
   const {userId} = req.body
   res.status(200).json({
