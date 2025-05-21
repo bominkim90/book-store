@@ -7,7 +7,8 @@ const crypto = require('crypto');
 async function loginController(req, res) {
   try {
     const {id, password} = req.body;
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
 
     // DB에는 암호화된 비밀번호가 있으니까, 들어온 password를 id의 salt값으로 암호화해서 hashedPassword를 만들어서 DB비번이랑 비교를 해보자
     // 그럼 먼저, id가 존재하는지 확인

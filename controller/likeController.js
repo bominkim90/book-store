@@ -13,7 +13,8 @@ async function addLike (req, res) {
     // (DB안에서 처리함) ALTER TABLE likes ADD CONSTRAINT unique_like UNIQUE (user_id, book_id);
     // DB TABLE안에서 이미 (user_id, book_id) 한 쌍으로 UNIQUE 제약을 걸어두었다.
     // 그래서 API내에서 따로 중복 좋아요 처리를 할 필요가 없다.
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result] = await conn.query(
       `INSERT INTO book_store.likes (user_id, book_id)
       VALUES (?, ?)`,
@@ -71,7 +72,8 @@ async function removeLike (req, res) {
 async function getLike (req, res) {
   try {
     const {book_id} = req.params;
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result_likes_count] = await conn.query(
       `SELECT count(*) AS like_count
       FROM book_store.likes WHERE book_id = ?`,

@@ -1,71 +1,76 @@
 const {StatusCodes} = require('http-status-codes');
-const dbConnection = require('../db/dbConnection.js');
+const pool = require('../db/dbConnection.js');
 
 
 // 주문 하기
-async function postCart(req, res) {
+async function postOrder(req, res) {
+  const { user_id, cart_id_arr, adress, receiver } = req.body;
+  const conn = await pool.getConnection();
+  let totalPrice = 0;
+
   try {
-    const {user_id} = req.body;
-    const {book_id} = req.params;
-    const {count} = req.body;
-    const conn = await dbConnection;
-    const [result_postCart] = await conn.query(
-      `INSERT INTO cart (user_id, book_id, count) VALUES (?, ?, ?)`,
-      [user_id, book_id, count]
+    await conn.beginTransaction();
+
+    // cart에서 주문 항목 한번에 조회
+    const [order_items] = await conn.query(
+      `SELECT cart.book_id, cart.count, books.price
+       FROM cart
+       JOIN books ON cart.book_id = books.id
+       WHERE cart.id IN (?)`,
+      [cart_id_arr]
     );
-    if(result_postCart.affectedRows === 0) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        message : "장바구니 담기 0개"
-      })
+
+    // 주문 테이블 저장
+    const [result_order_insert] = await conn.query(
+      `INSERT INTO orders (user_id, adress, receiver, totalPrice)
+       VALUES (?, ?, ?, ?)`,
+      [user_id, adress, receiver, 0]
+    );
+    const order_id = result_order_insert.insertId;
+
+    // 주문 상세 저장 + 가격 누적 계산
+    for (const item of order_items) { // await만 넣으면 순차적으로 잘 된다.
+      await conn.query(
+        `INSERT INTO orderItems (book_id, count, order_id) VALUES (?, ?, ?)`,
+        [item.book_id, item.count, order_id]
+      );
+      totalPrice += item.price * item.count;
     }
-    return res.status(StatusCodes.CREATED).json({
-      message : "장바구니 담기 성공"
-    })
-  }
+
+    // totalPrice 반영
+    await conn.query(
+      `UPDATE orders SET totalPrice = ? WHERE id = ?`,
+      [totalPrice, order_id]
+    );
+
+    // cart에서 삭제
+    await conn.query(
+      `DELETE FROM cart WHERE id IN (?)`,
+      [cart_id_arr]
+    );
+
+    await conn.commit();
+    res.status(StatusCodes.OK).end();
+  } 
   catch (err) {
-    console.error("error: ",err);
-    if(err.code === 'ER_DUP_ENTRY') {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        message : "장바구니 담기 실패 - 이미 장바구니에 있음"
-      });
-    }
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      message : "필수값 입력 안함 - SQL입력 오류"
-    });
+    await conn.rollback();
+    console.error("에러 : ", err);
+    res.status(StatusCodes.BAD_REQUEST).json({ message: "주문하기 실패" });
+  } 
+  finally {
+    conn.release(); // 에러가 나든 말든 항상 커넥션 반환
   }
 }
 
 
-// 주문 목록 조회
-async function getCart(req, res) {
-  try {
-    const {user_id} = req.body
-    const conn = await dbConnection;
-    const [result_getCart] = await conn.query(
-      `
-        SELECT 
-          cart.*, books.title, books.description, books.price
-        FROM cart
-        LEFT JOIN books ON cart.book_id = books.id
-        WHERE user_id = ?
-      `,
-      user_id
-    );
-    return res.status(200).json(result_getCart)
-  }
-  catch(err) {
-    return res.status(StatusCodes.BAD_REQUEST).end();
-  }
-}
-
-
-// 장바구니 삭제 (한개씩 삭제 가능)
-async function deleteCart(req, res) {
+// 주문 목록 '상세' 조회
+async function getEachOrder(req, res) {
   try {
     const {cart_id} = req.params;
     const {user_id} = req.body;
 
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result_deleteCart] = await conn.query(
       "DELETE FROM cart WHERE id = ? AND user_id = ?",
       [cart_id, user_id]
@@ -88,8 +93,32 @@ async function deleteCart(req, res) {
 }
 
 
+// 주문 목록 '전체' 조회
+async function getAllOrder(req, res) {
+  try {
+    const {user_id} = req.body
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
+    const [result_getCart] = await conn.query(
+      `
+        SELECT 
+          cart.*, books.title, books.description, books.price
+        FROM cart
+        LEFT JOIN books ON cart.book_id = books.id
+        WHERE user_id = ?
+      `,
+      user_id
+    );
+    return res.status(200).json(result_getCart)
+  }
+  catch(err) {
+    return res.status(StatusCodes.BAD_REQUEST).end();
+  }
+}
+
+
 module.exports = {
-  postCart,
-  getCart,
-  deleteCart
+  postOrder,
+  getEachOrder,
+  getAllOrder
 }

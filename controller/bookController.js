@@ -1,5 +1,5 @@
 const {StatusCodes} = require('http-status-codes');
-const dbConnection = require('../db/dbConnection.js');
+const pool = require('../db/dbConnection.js');
 
 
 // '전체' 도서 조회
@@ -38,7 +38,8 @@ async function selectAllBooks(req, res) {
     sql += ` LIMIT ${limit} OFFSET ${limit * (currentPage - 1)}`;
     message += ` : ${limit}개씩 보여주고, ${currentPage}번째 페이지`;
     // db 연결 생성
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result] = await conn.query(sql);
     if(result.length > 0) {
       res.status(StatusCodes.OK).json({message :message, data : result});
@@ -59,7 +60,8 @@ async function selectEachBook(req, res) {
   try {
     const {user_id} = req.body;
     const {book_id} = req.params;
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     let sql = `
       SELECT 
         book_store.books.*,

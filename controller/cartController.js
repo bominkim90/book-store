@@ -8,7 +8,8 @@ async function postCart(req, res) {
     const {user_id} = req.body;
     const {book_id} = req.params;
     const {count} = req.body;
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result_postCart] = await conn.query(
       `INSERT INTO cart (user_id, book_id, count) VALUES (?, ?, ?)`,
       [user_id, book_id, count]
@@ -40,7 +41,8 @@ async function postCart(req, res) {
 async function getCart(req, res) {
   try {
     const {user_id} = req.body
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result_getCart] = await conn.query(
       `
         SELECT 
@@ -65,7 +67,8 @@ async function deleteCart(req, res) {
     const {cart_id} = req.params;
     const {user_id} = req.body;
 
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result_deleteCart] = await conn.query(
       "DELETE FROM cart WHERE id = ? AND user_id = ?",
       [cart_id, user_id]
@@ -100,7 +103,8 @@ async function getCheckedItems(req, res) {
     let placeholder = cart_ids.map( value => "?" ); // ["?", "?", "?"] 배열 형태로
     placeholder = placeholder.join(); // "?, ?, ?" 문자열 형태로
 
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [rows_checkedItems] = await conn.query(
       `SELECT 
         cart.*, books.title, books.description, books.price

@@ -11,7 +11,8 @@ async function registerController(req, res) {
     // 로그인 시 => id & password(날 것) => salt값 꺼내서, 비밀번호 암호화 해보고 => DB 비밀번호랑 비교교
     const salt = crypto.randomBytes(64).toString('base64'); // 요건 회원마다 DB에 저장 (로그인 시 pw + 이 salt로 암호화 => DB에 salt랑 비교)
     const hashPassword = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('base64');
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result_INSERT_users] = await conn.query(
       `INSERT INTO users (id, password, salt) VALUES (?, ?, ?)`,
       [id, hashPassword, salt]
@@ -37,7 +38,8 @@ async function changePwController(req, res) {
     const salt = crypto.randomBytes(64).toString('base64');
     const hashPassword = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('base64');
 
-    const conn = await dbConnection;
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
     const [result_UPDATE_users] = await conn.query(
       `UPDATE users SET password = ?, salt = ? WHERE id = ?`,
       [hashPassword, salt, id]
