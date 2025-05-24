@@ -1,5 +1,20 @@
 const mysql = require('mysql2/promise');
+// mysql2/promise는 비동기 API를 가진 mysql 모듈이고,
+// createPool()은 바로 실행되는 동기 함수.
+// 반환되는 pool은 Promise 객체가 아니라, **비동기 메서드를 포함한 "pool 객체"**.
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_SCHEMA,
+  timezone: '+09:00',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  dateStrings: true
+});
 
+module.exports = pool;
 /*
   createPool(): 여러 개의 연결을 미리 만들어둠
   → 이 구조 덕분에 요청마다 독립적인 연결을 확보할 수 있음
@@ -24,19 +39,10 @@ const mysql = require('mysql2/promise');
   }
 
 */
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_SCHEMA,
-  timezone: '+09:00',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  dateStrings: true
-});
 
-module.exports = pool;
+
+
+
 
 
 
