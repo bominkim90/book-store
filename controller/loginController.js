@@ -42,19 +42,19 @@ async function loginController(req, res) {
         {expiresIn: '1h', issuer : "bomin"}
       ) 
       // 쿠키 방식 => jwt 쿠키에 담아 보내기
-      res.cookie('access_token', token, {
-        httpOnly: true,
-        secure: false,
-        sameSite: 'Strict',
-        maxAge: 1000 * 60 * 60
-      });
-      return res.status(StatusCodes.OK).json({
-        message : "로그인 성공",
-      });
+      // res.cookie('access_token', token, {
+      //   httpOnly: true,
+      //   secure: false,
+      //   sameSite: 'Strict',
+      //   maxAge: 1000 * 60 * 60
+      // });
+      // return res.status(StatusCodes.OK).json({
+      //   message : "로그인 성공",
+      // });
       /*
       // Authorization헤더 방식 => 그냥 응답의 body에 쌩으로 보냄
-      // return res.status(StatusCodes.OK).json({token: token})
       */
+     return res.status(StatusCodes.OK).json({token: token})
     }
   }
   catch (err) {

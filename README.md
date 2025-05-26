@@ -125,8 +125,9 @@ npm install
 npm run dev
 ```
 
-`.env` 예시:
+---
 
+`.env` 예시:
 ```
 PORT=1234
 DB_HOST=localhost

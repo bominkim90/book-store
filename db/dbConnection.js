@@ -4,7 +4,7 @@ const mysql = require('mysql2/promise');
 // 반환되는 pool은 Promise 객체가 아니라, **비동기 메서드를 포함한 "pool 객체"**.
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
-  user: process.env.USER,
+  user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   timezone: '+09:00',
