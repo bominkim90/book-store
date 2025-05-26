@@ -6,8 +6,11 @@ const dotenv = require('dotenv')
 dotenv.config()
 
 
+// 미들웨어 함수 등록
 app.use(express.json()) // 서버가 req.body (JSON형태) 데이터 파싱
-// app.use(express.urlencoded({ extended: true })); // URL-encoded 파싱
+app.use(express.urlencoded({ extended: true })); // URL-encoded 파싱
+const jwtCheck = require('./middleware/jwtCheck.js')
+app.use(jwtCheck)
 
 
 // 라우터 등록
