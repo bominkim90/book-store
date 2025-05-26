@@ -19,15 +19,13 @@ function jwtCheck(req, res, next) {
 
   catch(err) { // jwt.verify() 실패시 -> Error객체 throw해서 여기로 옴
     console.error("JWT 검사 실패 : ", err)
+    req.jwtError = err.name
 
-    if(err.name === 'TokenExpiredError') { // 유효기간 만료
-      req.jwtError = "expired" 
-    } 
-    else { // 내가 발행한(서명한) jwt가 아님
-      req.jwtError = "invalid"
-    }
+    // jwt.verify(..) 에서 던지는 오류 Error객체 name 들
+    // TokenExporedError => 유효기간 만료
+    // JsonWebTokenError => 내가 발행한(서명한) jwt가 아님
   }
-  
+
   finally {
     next()
   }
