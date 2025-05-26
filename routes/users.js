@@ -6,7 +6,7 @@ const {registerController, changePwController} = require('../controller/userCont
 
 // id, password => validation 확인 미들웨어
 const idPwValidateMiddleWares = [ 
-  body('id').notEmpty().isString().withMessage('id값이 잘못 입력되었습니다'),
+  body('user_id').notEmpty().isString().withMessage('id값이 잘못 입력되었습니다'),
   body('password').notEmpty().isString().withMessage('password값이 잘못 입력되었습니다'),
   // validate 함수 : 위에 등록한 req.body로 오는 데이터(id,password)가 notEmpty에 반하거나 하면 => 여기서 응답종료. errMsg를 보냄
   validate, 

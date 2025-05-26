@@ -3,17 +3,16 @@ const mysql = require('mysql2/promise');
 // createPool()은 바로 실행되는 동기 함수.
 // 반환되는 pool은 Promise 객체가 아니라, **비동기 메서드를 포함한 "pool 객체"**.
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
+  host: process.env.DB_HOST,
+  user: process.env.USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_SCHEMA,
+  database: process.env.DB_NAME,
   timezone: '+09:00',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
   dateStrings: true
 });
-
 module.exports = pool;
 /*
   createPool(): 여러 개의 연결을 미리 만들어둠
