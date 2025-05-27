@@ -127,18 +127,6 @@ npm run dev
 
 ---
 
-`.env` 예시:
-```
-PORT=1234
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD='root'
-DB_NAME='book_store'
-jwtSecretKey='yeah'
-```
-
----
-
 ## 📌 담당자 및 작성자
 
 * 작성자: 김보민
