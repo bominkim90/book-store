@@ -1,12 +1,15 @@
 const pool = require('../db/dbConnection.js');
 const {StatusCodes} = require('http-status-codes');
 const crypto = require('crypto'); // 암호화 모듈
+const loginCheck = require('../util/loginCheck.js')
+
 
 // 회원가입
 async function registerController(req, res) {
-  const conn = await pool.getConnection()
+  let conn;
 
   try {
+    conn = await pool.getConnection()
     await conn.beginTransaction()
 
     const {user_id, password} = req.body
@@ -40,27 +43,38 @@ async function registerController(req, res) {
 
 // 비밀번호 변경(초기화)
 async function changePwController(req, res) {
-  try {
-    const {id, password} = req.body;
-    // 비밀번호 암호화
-    const salt = crypto.randomBytes(64).toString('base64');
-    const hashPassword = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('base64');
+  let conn;
 
-    const conn = await pool.getConnection();
-    await conn.beginTransaction();
+  try {
+    conn = await pool.getConnection()
+    await conn.beginTransaction()
+
+    const user_id = req.user?.user_id
+    if(!user_id) {
+      return loginCheck(res)
+    }
+    const {password} = req.body
+
+    // 비밀번호 암호화
+    const salt = crypto.randomBytes(64).toString('base64')
+    const hashPassword = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('base64')
+
     const [result_UPDATE_users] = await conn.query(
       `UPDATE users SET password = ?, salt = ? WHERE id = ?`,
-      [hashPassword, salt, id]
-    );
+      [hashPassword, salt, user_id]
+    )
     if(result_UPDATE_users.changedRows === 0) {
       throw new Error("비밀번호 변경 실패");
-      return
     }
+
+    await conn.commit()
     res.status(200).json({
       message : "비밀번호 변경 성공"
-    });
+    })
   }
+
   catch (err) {
+    await conn.rollback()
     console.error("error : ",err);
     if(err.message == '비밀번호 변경 실패') {
       return res.status(400).json({
@@ -70,6 +84,10 @@ async function changePwController(req, res) {
     return res.status(500).json({
       message : "에러 발생"
     });
+  }
+
+  finally {
+    conn.release()
   }
 }
 

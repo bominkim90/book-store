@@ -1,15 +1,21 @@
 const {StatusCodes} = require('http-status-codes');
 const pool = require('../db/dbConnection.js');
+const loginCheck = require('../util/loginCheck.js')
 
 
 // 장바구니 담기 (user & book 중복 담기 불가)
 async function postCart(req, res) {
-  const conn = await pool.getConnection()
-  
+  let conn;
+
   try {
+    conn = await pool.getConnection()
     await conn.beginTransaction()
 
-    const {user_id} = req.user
+    const user_id = req.user?.user_id
+    if(!user_id) {
+      return loginCheck(res)
+    }
+
     const {book_id} = req.params
     const {count} = req.body
 
@@ -48,10 +54,15 @@ async function postCart(req, res) {
 
 // 장바구니 조회
 async function getCart(req, res) {
-  const conn = await pool.getConnection()
-
+  let conn;
+  
   try {
-    const {user_id} = req.user
+    conn = await pool.getConnection()
+
+    const user_id = req.user?.user_id
+    if(!user_id) {
+      return loginCheck(res)
+    }
 
     const [result_getCart] = await conn.query(
       `SELECT 
@@ -77,9 +88,10 @@ async function getCart(req, res) {
 
 // 장바구니 삭제 (한개씩 삭제 가능)
 async function deleteCart(req, res) {
-  const conn = await pool.getConnection()
-
+  let conn;
+  
   try {
+    conn = await pool.getConnection()
     await conn.beginTransaction()
   
     const {user_id} = req.user
@@ -114,9 +126,10 @@ async function deleteCart(req, res) {
 
 // 장바구니에서 "체크한" 상품 목록 조회
 async function getCheckedItems(req, res) {
-  const conn = await pool.getConnection()
-
+  let conn;
+  
   try {
+    conn = await pool.getConnection()
     const {user_id} = req.user
     const {cart_ids} = req.body
 
